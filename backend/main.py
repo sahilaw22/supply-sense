@@ -15,7 +15,7 @@ import logging
 import os
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -44,7 +44,7 @@ app = FastAPI(
     title="SupplySense API",
     description="AI Supply Chain Risk & Inventory Intelligence — PRD §7 endpoints",
     version="1.0.0",
-    docs_url="/docs",
+    docs_url=None,
 )
 
 app.add_middleware(
@@ -478,6 +478,21 @@ async def alternate_suppliers_get(item_id: str, quantity: int = 100):
         payload=result,
         summary=summary,
     )
+
+
+# ---------------------------------------------------------------------------
+# Debug catch-all — shows path FastAPI receives
+# ---------------------------------------------------------------------------
+
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def debug_path(full_path: str, request: Request):
+    return {
+        "full_path": full_path,
+        "method": request.method,
+        "url": str(request.url),
+        "path": request.url.path,
+        "root_path": request.scope.get("root_path", ""),
+    }
 
 
 # ---------------------------------------------------------------------------

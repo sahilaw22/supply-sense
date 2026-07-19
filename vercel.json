@@ -1,1 +1,6 @@
-{}
+{
+  "builds": [
+    { "src": "package.json", "use": "@vercel/next" },
+    { "src": "api/[[...slug]].py", "use": "@vercel/python" }
+  ]
+}
