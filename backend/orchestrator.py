@@ -3,8 +3,7 @@ SupplySense AI Orchestrator
 Translates natural language → tool calls → structured JSON contract response.
 
 Uses Google Gemini REST API (pure httpx, no SDK — compatible with Python 3.9+).
-Falls back to Zyloo API (OpenAI-compatible) if Gemini fails.
-Falls back to a mock response if neither API key is set (offline demo mode).
+Falls back to a mock response if no API key is set (offline demo mode).
 
 Output contract (every response):
 {
@@ -23,10 +22,7 @@ from typing import Any, Dict
 import httpx
 from dotenv import load_dotenv
 
-# Load standard .env first
 load_dotenv()
-
-# Load backend/.env.local if it exists
 backend_env_local = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env.local")
 if os.path.exists(backend_env_local):
     load_dotenv(backend_env_local, override=True)
@@ -35,19 +31,11 @@ from backend.tools import query_database, get_alternate_suppliers, simulate_rero
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# LLM configuration — pure REST, no SDK required
-# ---------------------------------------------------------------------------
 _GEMINI_MODEL = "gemini-1.5-flash"
 _GEMINI_REST_URL = (
     f"https://generativelanguage.googleapis.com/v1beta/models/{_GEMINI_MODEL}:generateContent"
 )
-_ZYLOO_URL = "https://api.zyloo.io/v1/chat/completions"
-_ZYLOO_MODEL = "zyloo/gemini-3.5-flash"
 
-# ---------------------------------------------------------------------------
-# System prompt (from PRD Appendix A — India edition)
-# ---------------------------------------------------------------------------
 _SYSTEM_PROMPT = """
 You are the core AI Orchestrator Agent for "SupplySense", an enterprise-grade AI decision-support system for supply chain risk mitigation and dynamic inventory reallocation. Your persona is a highly experienced, data-driven Logistics Director who focuses on minimizing lead times, avoiding stockouts, and proactively routing around disruptions.
 
@@ -93,15 +81,11 @@ If you need to call a tool, return this intermediate JSON:
 }
 """.strip()
 
-# ---------------------------------------------------------------------------
-# Tool dispatcher
-# ---------------------------------------------------------------------------
 _TOOL_MAP = {
     "query_database": query_database,
     "get_alternate_suppliers": get_alternate_suppliers,
     "simulate_rerouting": simulate_rerouting,
 }
-
 
 def _dispatch_tool(tool_name: str, args: Dict[str, Any]) -> Any:
     fn = _TOOL_MAP.get(tool_name)
@@ -113,52 +97,34 @@ def _dispatch_tool(tool_name: str, args: Dict[str, Any]) -> Any:
         logger.exception("Tool %s raised an error", tool_name)
         return {"error": str(exc)}
 
-
-# ---------------------------------------------------------------------------
-# JSON extraction helper
-# ---------------------------------------------------------------------------
 def _extract_json(text: str) -> Dict[str, Any]:
-    """Strip markdown code fences and parse the first JSON object found."""
-    # Remove ```json ... ``` or ``` ... ```
     text = re.sub(r"```(?:json)?\s*", "", text, flags=re.IGNORECASE)
     text = text.replace("```", "").strip()
-    # Find first { ... } block
     start = text.find("{")
     end = text.rfind("}") + 1
     if start == -1 or end == 0:
         raise ValueError("No JSON object found in LLM response")
     return json.loads(text[start:end])
 
-
-# ---------------------------------------------------------------------------
-# Fallback (offline / no API key)
-# ---------------------------------------------------------------------------
 def _offline_response(question: str) -> Dict[str, Any]:
-    """Returns a canned mock response when no API key is configured."""
     return {
         "intent": "DB_QUERY",
         "frontend_action": "RENDER_TABLE",
         "payload": {
-            "note": "Offline mode — GEMINI_API_KEY and ZYLOO_KEY not set. Using mock response.",
+            "note": "Offline mode — GEMINI_API_KEY not set. Using mock response.",
             "question": question,
             "rows": [],
         },
         "summary": (
             "AI orchestrator is running in offline mode. "
-            "Set GEMINI_API_KEY or ZYLOO_KEY in backend/.env.local to enable live responses."
+            "Set GEMINI_API_KEY in backend/.env.local to enable live responses."
         ),
     }
 
-
-# ---------------------------------------------------------------------------
-# Gemini REST API call (pure httpx, no SDK, Python 3.9 compatible)
-# ---------------------------------------------------------------------------
 async def _call_gemini_rest(conversation_history: list, api_key: str) -> str:
-    """Call Gemini via REST API — no google-generativeai SDK required."""
-    # Convert history to Gemini REST format
     contents = []
     for msg in conversation_history:
-        role = msg["role"]  # "user" or "model"
+        role = msg["role"]
         text = "\n".join(msg["parts"]) if isinstance(msg["parts"], list) else str(msg["parts"])
         contents.append({"role": role, "parts": [{"text": text}]})
 
@@ -187,54 +153,8 @@ async def _call_gemini_rest(conversation_history: list, api_key: str) -> str:
             raise ValueError("Gemini REST API: empty text in response")
         return text.strip()
 
-
-# ---------------------------------------------------------------------------
-# Zyloo API call (OpenAI-compatible)
-# ---------------------------------------------------------------------------
-async def _call_zyloo(conversation_history: list, api_key: str) -> str:
-    """Call Zyloo API (OpenAI-compatible endpoint)."""
-    messages = [{"role": "system", "content": _SYSTEM_PROMPT}]
-    for msg in conversation_history:
-        role = "assistant" if msg["role"] == "model" else msg["role"]
-        content = "\n".join(msg["parts"]) if isinstance(msg["parts"], list) else str(msg["parts"])
-        messages.append({"role": role, "content": content})
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "model": _ZYLOO_MODEL,
-        "messages": messages,
-        "temperature": 0.2,
-        "response_format": {"type": "json_object"},
-    }
-
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(_ZYLOO_URL, json=payload, headers=headers)
-        if response.status_code != 200:
-            raise ValueError(
-                f"Zyloo API returned status {response.status_code}: {response.text[:500]}"
-            )
-        result_json = response.json()
-        content = result_json["choices"][0]["message"]["content"]
-        return content.strip()
-
-
-# ---------------------------------------------------------------------------
-# Unified LLM call with fallback chain
-# ---------------------------------------------------------------------------
 async def _call_llm(conversation_history: list) -> str:
-    """
-    Try Gemini REST first, then Zyloo, then raise.
-    Both keys are loaded from backend/.env.local.
-    """
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
-    zyloo_key = os.getenv("ZYLOO_KEY", "").strip()
-
-    last_error: Exception | None = None
-
-    # 1. Try Gemini REST API
     if gemini_key:
         try:
             logger.info("Attempting Gemini REST API call (model: %s)...", _GEMINI_MODEL)
@@ -242,46 +162,17 @@ async def _call_llm(conversation_history: list) -> str:
             logger.info("Gemini REST API call succeeded.")
             return text
         except Exception as exc:
-            logger.warning("Gemini REST API failed: %s. Falling back to Zyloo...", exc)
-            last_error = exc
+            logger.warning("Gemini REST API failed: %s", exc)
+            raise
+    raise ValueError("No GEMINI_API_KEY configured.")
 
-    # 2. Try Zyloo
-    if zyloo_key:
-        try:
-            logger.info("Attempting Zyloo API call...")
-            text = await _call_zyloo(conversation_history, zyloo_key)
-            logger.info("Zyloo API call succeeded.")
-            return text
-        except Exception as exc:
-            logger.warning("Zyloo API failed: %s", exc)
-            last_error = exc
-
-    raise last_error or ValueError("No API keys configured (GEMINI_API_KEY or ZYLOO_KEY).")
-
-
-# ---------------------------------------------------------------------------
-# Main orchestration function
-# ---------------------------------------------------------------------------
 async def orchestrate_query(user_question: str) -> Dict[str, Any]:
-    """
-    Main entry point: natural language question → tool calls → JSON contract.
-
-    Flow:
-      1. Send system prompt + question to LLM.
-      2. If LLM returns tool_calls, execute them sequentially.
-      3. Feed tool results back to LLM for final answer.
-      4. Return structured JSON contract.
-    """
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
-    zyloo_key = os.getenv("ZYLOO_KEY", "").strip()
-
-    if not gemini_key and not zyloo_key:
-        logger.warning("Neither GEMINI_API_KEY nor ZYLOO_KEY set — returning offline mock response.")
+    if not gemini_key:
+        logger.warning("GEMINI_API_KEY not set — returning offline mock response.")
         return _offline_response(user_question)
 
     conversation_history = []
-
-    # --- Turn 1: initial question ---
     conversation_history.append({"role": "user", "parts": [user_question]})
 
     try:
@@ -292,7 +183,6 @@ async def orchestrate_query(user_question: str) -> Dict[str, Any]:
         logger.exception("LLM Turn 1 failed")
         return _error_contract(f"LLM error: {exc}")
 
-    # --- Check for tool_calls ---
     if "tool_calls" in llm_json:
         tool_results = []
         for call in llm_json["tool_calls"]:
@@ -303,7 +193,6 @@ async def orchestrate_query(user_question: str) -> Dict[str, Any]:
             tool_results.append({"tool": tool_name, "args": args, "result": result})
             logger.debug("Tool result: %s", str(result)[:500])
 
-        # --- Turn 2: feed results back ---
         tool_results_text = json.dumps(tool_results, indent=2)
         conversation_history.append({"role": "model", "parts": [raw_text]})
         conversation_history.append(
@@ -328,20 +217,12 @@ async def orchestrate_query(user_question: str) -> Dict[str, Any]:
 
         return _validate_contract(final_json)
 
-    # --- No tool calls: direct answer ---
     return _validate_contract(llm_json)
-
-
-# ---------------------------------------------------------------------------
-# Contract helpers
-# ---------------------------------------------------------------------------
 
 _VALID_INTENTS = {"DB_QUERY", "DISRUPTION_MITIGATION", "ALERT"}
 _VALID_ACTIONS = {"RENDER_TABLE", "SHOW_MODAL", "UPDATE_MAP_HIGHLIGHT"}
 
-
 def _validate_contract(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Ensure the response has all required fields; fill defaults if not."""
     return {
         "intent": data.get("intent", "DB_QUERY") if data.get("intent") in _VALID_INTENTS else "DB_QUERY",
         "frontend_action": (
@@ -352,7 +233,6 @@ def _validate_contract(data: Dict[str, Any]) -> Dict[str, Any]:
         "payload": data.get("payload", {}),
         "summary": data.get("summary", "No summary provided."),
     }
-
 
 def _error_contract(message: str) -> Dict[str, Any]:
     return {
