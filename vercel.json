@@ -1,13 +1,17 @@
 {
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/index.py": {
+      "runtime": "python@3.12",
+      "maxDuration": 30
     }
-  ],
-  "routes": [
-    { "source": "/api/(.*)", "destination": "api/index.py" }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/(.*)", "destination": "/" }
   ],
   "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/.next"
+  "outputDirectory": "frontend/.next",
+  "github": {
+    "silent": true
+  }
 }
