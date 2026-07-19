@@ -8,7 +8,9 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" }
   ],
-  "rootDirectory": "frontend",
+  "buildCommand": "cd frontend && npm run build",
+  "installCommand": "cd frontend && npm install",
+  "outputDirectory": "frontend/.next",
   "github": {
     "silent": true
   }
