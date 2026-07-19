@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 _GEMINI_MODEL = "gemini-2.0-flash"
 _GEMINI_REST_URL = (
-    f"https://generativelanguage.googleapis.com/v1/models/{_GEMINI_MODEL}:generateContent"
+    f"https://generativelanguage.googleapis.com/v1beta/models/{_GEMINI_MODEL}:generateContent"
 )
 
 _SYSTEM_PROMPT = """
