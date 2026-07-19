@@ -7,8 +7,11 @@ import {
   AlertTriangle, ArrowRight, ArrowUp, Bell, Box, Check, ChevronRight, CircleGauge,
   FileText, LayoutDashboard, LogOut, Map, Menu, PackageSearch, Play, RotateCcw, Search,
   Send, ShieldCheck, Sparkles, Truck, Warehouse, X, SlidersHorizontal,
-  TrendingUp, Clock3, Route, Building2, CircleDollarSign, Table2,
+  TrendingUp, Clock3, Route, Building2, CircleDollarSign, Table2, Info,
 } from 'lucide-react'
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
+} from 'recharts'
 import {
   copilotResponses, demandPoints, forecastPoints, inventory, kpis, promptOptions,
   shipments, suppliers, warehouses,
@@ -18,7 +21,6 @@ import {
   generateExecutiveSummary,
   getDashboardSnapshot,
   runDisruptionSimulation,
-  type ApiHealth,
   type ContractResponse,
   type DashboardSnapshot,
 } from '@/lib/supplysense-api'
@@ -255,10 +257,46 @@ function Warehouses({ rows }: { rows: WarehouseRow[] }) {
   return <section className="panel" id="warehouses"><div className="section-heading"><div><span className="eyebrow">Capacity</span><h2>Warehouse utilization</h2></div><Warehouse size={17} /></div><div className="warehouse-list">{rows.map(w => <div className="warehouse-row" key={w.code}><div><strong>{w.city}</strong><span>{w.code}</span></div><div className="utilization"><div><i style={{ width: `${w.utilization}%` }} className={w.status === 'critical' ? 'bar-critical' : w.status === 'warning' ? 'bar-warning' : ''} /></div><span>{w.utilization}%</span></div></div>)}</div></section>
 }
 
+const months = ['Apr 22', 'May 06', 'May 20', 'Jun 03', 'Jun 17', 'Jul 01', 'Jul 15', 'Jul 29', 'Aug 12', 'Aug 26', 'Sep 09', 'Sep 23', 'Oct 07', 'Oct 21', 'Nov 04', 'Nov 18', 'Dec 02', 'Dec 16']
+const chartData = [
+  ...demandPoints.map((v, i) => ({ month: months[i], demand: v, forecast: null })),
+  ...forecastPoints.map((v, i) => ({ month: months[demandPoints.length + i], demand: null, forecast: v })),
+]
+
+const lastActualIdx = demandPoints.length - 1
+chartData[lastActualIdx] = { ...chartData[lastActualIdx], forecast: forecastPoints[0] }
+
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ dataKey: string; value: number | null; color: string }>; label?: string }) {
+  if (!active || !payload?.length) return null
+  return <div className="chart-tooltip"><div className="chart-tooltip-label">{label}</div>{payload.filter(p => p.value != null).map(p => <div key={p.dataKey} className="chart-tooltip-row"><i style={{ background: p.color }} /><span>{p.dataKey === 'demand' ? 'Actual demand' : 'Forecast'}</span><strong>{p.value}</strong></div>)}</div>
+}
+
 function Forecast() {
-  const actual = demandPoints.map((v, i) => `${30 + i * 42},${165 - v * 2}`).join(' ')
-  const forecast = [demandPoints.at(-1)!, ...forecastPoints].map((v, i) => `${492 + i * 42},${165 - v * 2}`).join(' ')
-  return <section className="panel forecast-panel"><div className="section-heading"><div><span className="eyebrow">12-week signal · EV Battery demand</span><h2>Lithium-Ion Battery demand forecast</h2></div><span className="forecast-change">+46% demand</span></div><svg viewBox="0 0 790 190" role="img" aria-label="Lithium-Ion Battery demand trend rising 46 percent"><g className="chart-grid"><line x1="30" x2="760" y1="35" y2="35" /><line x1="30" x2="760" y1="95" y2="95" /><line x1="30" x2="760" y1="155" y2="155" /></g><polyline className="actual-line" points={actual} /><polyline className="forecast-line" points={forecast} /><line className="forecast-divider" x1="492" x2="492" y1="20" y2="170" /><text x="500" y="28">FORECAST</text></svg><div className="chart-labels"><span>Apr 22</span><span>May 20</span><span>Jun 17</span><span>Jul 15</span></div></section>
+  const [showForecast, setShowForecast] = useState(true)
+  return <section className="panel forecast-panel">
+    <div className="section-heading">
+      <div><span className="eyebrow">12-week signal · EV Battery demand</span><h2>Lithium-Ion Battery demand forecast</h2></div>
+      <div className="forecast-controls">
+        <span className="forecast-change">+46% demand</span>
+        <button className={`filter-chip ${showForecast ? 'active' : ''}`} onClick={() => setShowForecast(v => !v)}>{showForecast ? 'Hide forecast' : 'Show forecast'}</button>
+      </div>
+    </div>
+    <ResponsiveContainer width="100%" height={200}>
+      <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id="demandGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} /></linearGradient>
+          <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} /><stop offset="95%" stopColor="#f59e0b" stopOpacity={0.02} /></linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+        <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} interval={2} />
+        <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} width={30} />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1 }} />
+        <ReferenceLine x={months[lastActualIdx]} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" label={{ value: 'FORECAST', position: 'top', fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} />
+        <Area type="monotone" dataKey="demand" stroke="#3b82f6" strokeWidth={2} fill="url(#demandGradient)" dot={{ r: 3, fill: '#3b82f6', stroke: 'none' }} activeDot={{ r: 5, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }} isAnimationActive animationDuration={1000} name="demand" connectNulls={false} />
+        {showForecast && <Area type="monotone" dataKey="forecast" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" fill="url(#forecastGradient)" dot={{ r: 3, fill: '#f59e0b', stroke: 'none' }} activeDot={{ r: 5, fill: '#f59e0b', stroke: '#fff', strokeWidth: 2 }} isAnimationActive animationDuration={1000} name="forecast" connectNulls />}
+      </AreaChart>
+    </ResponsiveContainer>
+  </section>
 }
 
 function scoreClass(score: number) {
@@ -535,10 +573,9 @@ const pageMeta: Record<PageKey, { eyebrow: string; title: string; description: s
   suppliers: { eyebrow: 'Supplier intelligence · 10 suppliers', title: 'Supplier risk center', description: 'Monitor reliability across Mumbai, Chennai, Pune, Ahmedabad, Bengaluru suppliers.' },
 }
 
-function PageIntro({ page, apiHealth }: { page: PageKey; apiHealth: ApiHealth }) {
+function PageIntro({ page }: { page: PageKey }) {
   const meta = pageMeta[page]
-  const label = apiHealth === 'online' ? 'Backend online' : apiHealth === 'offline' ? 'Backend offline' : 'Connecting…'
-  return <div className="dashboard-intro"><div><span className="eyebrow">{meta.eyebrow}</span><h2>{meta.title}</h2><p>{meta.description}</p></div><span className={`last-updated api-${apiHealth}`}><i />{label}</span></div>
+  return <div className="dashboard-intro"><div><span className="eyebrow">{meta.eyebrow}</span><h2>{meta.title}</h2><p>{meta.description}</p></div></div>
 }
 
 function FilterBar({ label }: { label: string }) {
@@ -587,7 +624,7 @@ export function Dashboard({ page = 'overview' }: { page?: PageKey }) {
   const [disrupted, setDisrupted] = useState(false)
   const [simulating, setSimulating] = useState(false)
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null)
-  const [apiHealth, setApiHealth] = useState<ApiHealth>('connecting')
+  const [apiOnline, setApiOnline] = useState(false)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -601,11 +638,9 @@ export function Dashboard({ page = 'overview' }: { page?: PageKey }) {
         if (!active) return
         setSnapshot(result)
         setDisrupted(Boolean(result.active_disruption))
-        setApiHealth('online')
+        setApiOnline(true)
       })
-      .catch(() => {
-        if (active) setApiHealth('offline')
-      })
+      .catch(() => { if (active) setApiOnline(false) })
     return () => { active = false }
   }, [])
 
@@ -627,9 +662,9 @@ export function Dashboard({ page = 'overview' }: { page?: PageKey }) {
       await runDisruptionSimulation()
       const result = await getDashboardSnapshot()
       setSnapshot(result)
-      setApiHealth('online')
+      setApiOnline(true)
     } catch {
-      setApiHealth('offline')
+      // ignore - still trigger disruption
     } finally {
       setDisrupted(true)
       setSimulating(false)
@@ -658,5 +693,5 @@ export function Dashboard({ page = 'overview' }: { page?: PageKey }) {
 
   if (authLoading) return null
 
-  return <div className="app-shell"><Sidebar page={page} /><div className="workspace"><Header onMenu={() => setMenuOpen(true)} onCopilot={() => setCopilotOpen(true)} onSummary={() => setSummaryOpen(true)} disrupted={disrupted} onSimulate={simulate} simulating={simulating} /><main className="dashboard-main"><PageIntro page={page} apiHealth={apiHealth} /><PageContent page={page} disrupted={disrupted} simulating={simulating} onSimulate={simulate} onReset={resetDisruption} data={data} /></main></div><button className="floating-copilot" onClick={() => setCopilotOpen(true)} id="floating-copilot"><Image src="/bot-icon.png" alt="Copilot" width={26} height={26} style={{ objectFit: 'contain' }} /><span>Ask Copilot</span></button><MobileNav open={menuOpen} page={page} onClose={() => setMenuOpen(false)} onCopilot={() => setCopilotOpen(true)} onSummary={() => setSummaryOpen(true)} /><CopilotDrawer open={copilotOpen} onClose={() => setCopilotOpen(false)} /><SummaryModal open={summaryOpen} onClose={() => setSummaryOpen(false)} /><GuidedDemo open={guidedDemoOpen} onDismiss={completeTour} onSimulateDemandSpike={handleDemandSpike} onCheckSupplierRisk={handleSupplierRisk} onGenerateSummary={() => { setSummaryOpen(true); completeTour() }} /></div>
+  return <div className="app-shell"><Sidebar page={page} /><div className="workspace"><Header onMenu={() => setMenuOpen(true)} onCopilot={() => setCopilotOpen(true)} onSummary={() => setSummaryOpen(true)} disrupted={disrupted} onSimulate={simulate} simulating={simulating} /><main className="dashboard-main"><PageIntro page={page} /><PageContent page={page} disrupted={disrupted} simulating={simulating} onSimulate={simulate} onReset={resetDisruption} data={data} /></main></div><button className="floating-copilot" onClick={() => setCopilotOpen(true)} id="floating-copilot"><Image src="/bot-icon.png" alt="Copilot" width={26} height={26} style={{ objectFit: 'contain' }} /><span>Ask Copilot</span></button><MobileNav open={menuOpen} page={page} onClose={() => setMenuOpen(false)} onCopilot={() => setCopilotOpen(true)} onSummary={() => setSummaryOpen(true)} /><CopilotDrawer open={copilotOpen} onClose={() => setCopilotOpen(false)} /><SummaryModal open={summaryOpen} onClose={() => setSummaryOpen(false)} /><GuidedDemo open={guidedDemoOpen} onDismiss={completeTour} onSimulateDemandSpike={handleDemandSpike} onCheckSupplierRisk={handleSupplierRisk} onGenerateSummary={() => { setSummaryOpen(true); completeTour() }} /></div>
 }
