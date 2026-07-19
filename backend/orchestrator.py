@@ -31,7 +31,7 @@ from backend.tools import query_database, get_alternate_suppliers, simulate_rero
 
 logger = logging.getLogger(__name__)
 
-_GEMINI_MODEL = "gemini-2.0-flash"
+_GEMINI_MODEL = "gemini-2.5-flash-lite"
 _GEMINI_REST_URL = (
     f"https://generativelanguage.googleapis.com/v1beta/models/{_GEMINI_MODEL}:generateContent"
 )
