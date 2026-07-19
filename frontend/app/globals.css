@@ -767,6 +767,8 @@ button:disabled { cursor: not-allowed; opacity: .55; }
    Interactive Flow Map — Leaflet
 ───────────────────────────────────────────────────────────────────────────── */
 .flow-map-panel {
+  position: relative;
+  z-index: 1;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);

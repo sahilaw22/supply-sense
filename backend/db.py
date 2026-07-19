@@ -8,7 +8,8 @@ import os
 from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 
-DATABASE_PATH = os.getenv('DATABASE_PATH', 'supplysense.db')
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATABASE_PATH = os.getenv('DATABASE_PATH', os.path.join(_project_root, 'supplysense.db'))
 
 
 @contextmanager

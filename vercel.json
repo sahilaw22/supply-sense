@@ -1,0 +1,18 @@
+{
+  "functions": {
+    "api/index.py": {
+      "runtime": "vercel-python@3.12.3",
+      "maxDuration": 30,
+      "includeFiles": "supplysense.db"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/(.*)", "destination": "/" }
+  ],
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/.next",
+  "github": {
+    "silent": true
+  }
+}

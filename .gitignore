@@ -68,3 +68,8 @@ chroma_db/
 # Logs
 logs/
 *.log
+
+# Large binary files
+*.zip
+*.tar.gz
+*.7z
