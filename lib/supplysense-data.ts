@@ -217,3 +217,106 @@ export const copilotResponses: Record<string, { title: string; summary: string; 
     bullets: ['Use the preset prompts for specific analysis', 'Or rephrase your question about supply chain operations'],
   },
 }
+
+// Fallback data for new pages (offline mode support)
+export const fallbackStoreSales = [
+  { store_name: 'Reliance Retail - Mumbai', item_name: 'Lithium-Ion Battery Pack', date: '2026-07-18', quantity_sold: 28, revenue_inr: 197428.0 },
+  { store_name: 'Trent Star Bazaar - Bengaluru', item_name: 'Microcontroller Unit', date: '2026-07-18', quantity_sold: 42, revenue_inr: 21742.0 },
+  { store_name: 'Tata Croma - Delhi NCR', item_name: 'Chassis Assembly', date: '2026-07-17', quantity_sold: 14, revenue_inr: 165842.0 },
+  { store_name: 'D-Mart - Pune', item_name: 'Brushless DC Motor', date: '2026-07-17', quantity_sold: 35, revenue_inr: 113280.0 },
+]
+
+export const fallbackEcommSales = [
+  { channel_name: 'Amazon India', item_name: 'Lithium-Ion Battery Pack', date: '2026-07-18', orders_count: 85, revenue_inr: 601240.0 },
+  { channel_name: 'Flipkart', item_name: 'Microcontroller Unit', date: '2026-07-18', orders_count: 112, revenue_inr: 58012.0 },
+  { channel_name: 'Blinkit', item_name: 'Cooling Fan Module', date: '2026-07-18', orders_count: 240, revenue_inr: 188384.0 },
+]
+
+export const fallbackEcommInventory = [
+  { facility_name: 'Mumbai Distribution Hub', item_name: 'Lithium-Ion Battery Pack', stock_on_hand: 420, committed_stock: 150, safety_stock: 100 },
+  { facility_name: 'North India Logistics Hub', item_name: 'Microcontroller Unit', stock_on_hand: 890, committed_stock: 400, safety_stock: 200 },
+  { facility_name: 'South India Fulfillment Center', item_name: 'Chassis Assembly', stock_on_hand: 210, committed_stock: 90, safety_stock: 80 },
+]
+
+export const fallbackEcommInstock = [
+  { item_name: 'Lithium-Ion Battery Pack', date: '2026-07-18', instock_rate_pct: 98.42, out_of_stock_minutes: 45 },
+  { item_name: 'Microcontroller Unit', date: '2026-07-18', instock_rate_pct: 99.15, out_of_stock_minutes: 20 },
+  { item_name: 'Chassis Assembly', date: '2026-07-17', instock_rate_pct: 94.10, out_of_stock_minutes: 180 },
+]
+
+export const fallbackEcommReturns = [
+  { return_id: 'RET-1001', customer_name: 'Amit Sharma', item_name: 'Lithium-Ion Battery Pack', return_reason: 'Defective Item', refund_status: 'Refund Issued' },
+  { return_id: 'RET-1002', customer_name: 'Priya Patel', item_name: 'Microcontroller Unit', return_reason: 'Incorrect Item Sent', refund_status: 'Replacement Sent' },
+]
+
+export const fallbackDcMetrics = [
+  { dc_name: 'Mumbai Distribution Hub', date: '2026-07-18', inbound_pallets: 45, outbound_pallets: 38, processing_time_hours: 2.4, service_level_pct: 98.8 },
+  { dc_name: 'North India Logistics Hub', date: '2026-07-18', inbound_pallets: 85, outbound_pallets: 72, processing_time_hours: 3.1, service_level_pct: 96.5 },
+]
+
+export const fallbackOrderForecast = [
+  { item_name: 'Lithium-Ion Battery Pack', date: '2026-07-20', forecasted_orders: 850 },
+  { item_name: 'Microcontroller Unit', date: '2026-07-20', forecasted_orders: 1400 },
+]
+
+export const fallbackDemandForecast = [
+  { item_name: 'Lithium-Ion Battery Pack', date: '2026-07-20', forecasted_demand_qty: 920 },
+  { item_name: 'Microcontroller Unit', date: '2026-07-20', forecasted_demand_qty: 1550 },
+]
+
+export const fallbackVendorScorecard = [
+  { supplier_name: 'Konkan Components Pvt Ltd', on_time_delivery_pct: 91.2, quality_acceptance_pct: 98.4, lead_time_variance_days: 1.5, cost_variance_pct: 0.5 },
+  { supplier_name: 'Deccan Manufacturing Co', on_time_delivery_pct: 97.8, quality_acceptance_pct: 99.5, lead_time_variance_days: -0.8, cost_variance_pct: -1.2 },
+]
+
+export const fallbackTenderAnalysis = [
+  { carrier_name: 'Delhivery', route_name: 'Mumbai to Bengaluru Corridor', lane_rate_inr: 24500.0, transit_time_days: 3, bid_status: 'Bid Under Review' },
+  { carrier_name: 'Blue Dart', route_name: 'Chennai to NCR Corridor', lane_rate_inr: 41200.0, transit_time_days: 2, bid_status: 'Accepted' },
+]
+
+export const fallbackStoreMumd = [
+  { store_name: 'Reliance Retail - Mumbai', item_name: 'Lithium-Ion Battery Pack', original_price_inr: 8450.0, markdown_pct: 0.05, promotional_units_sold: 45 },
+  { store_name: 'Tata Croma - Delhi NCR', item_name: 'Microcontroller Unit', original_price_inr: 620.0, markdown_pct: 0.10, promotional_units_sold: 120 },
+]
+
+export const fallbackModularPlan = [
+  { category_name: 'Power & EV Components', planogram_id: 'POG-101', shelf_share_pct: 28.5, linear_feet: 32, status: 'Active' },
+  { category_name: 'Electronics & Microcontrollers', planogram_id: 'POG-102', shelf_share_pct: 18.2, linear_feet: 24, status: 'Active' },
+]
+
+export const fallbackFutureValidStores = [
+  { store_code: 'ST-201', city: 'Pune', projected_opening_date: '2026-09-15', store_size_sqft: 12000, status: 'Upcoming - Q3' },
+  { store_code: 'ST-202', city: 'Noida', projected_opening_date: '2026-11-20', store_size_sqft: 15000, status: 'Under Construction' },
+]
+
+export const fallbackItemMaster = [
+  { item_id: 'ITEM-001', name: 'Lithium-Ion Battery Pack', category: 'Power', unit_cost_inr: 7055.75, pack_size: 12, dimensions: '30x20x15 cm', weight_kg: 4.8 },
+  { item_id: 'ITEM-002', name: 'Microcontroller Unit', category: 'Electronics', unit_cost_inr: 517.70, pack_size: 48, dimensions: '10x10x5 cm', weight_kg: 0.22 },
+]
+
+export const fallbackExceptions = {
+  instock_exceptions: [
+    { item_name: 'Chassis Assembly', date: '2026-07-17', instock_rate_pct: 94.10, out_of_stock_minutes: 180 }
+  ],
+  inventory_exceptions: [
+    { item_name: 'Lithium-Ion Battery Pack', warehouse_name: 'Mumbai Distribution Hub', current_stock: 42, reorder_point: 100 }
+  ],
+  ordering_gap_exceptions: [
+    { item_name: 'Brushless DC Motor', warehouse_name: 'North India Logistics Hub', current_stock: 35, reorder_point: 150 }
+  ]
+}
+
+export const fallbackDemandIntelligence = {
+  demand_order_alignment: [
+    { item_name: 'Lithium-Ion Battery Pack', total_demand: 920, total_orders: 850 }
+  ],
+  sell_through_analysis: [
+    { item_name: 'Microcontroller Unit', total_sold: 580, stock_on_hand: 890, sell_through_pct: 39.46 }
+  ]
+}
+
+export const fallbackAutomatedInsights = [
+  { id: 'INS-001', title: 'Severe Stockout Risk in Manesar Hub', description: 'Lithium-Ion Battery Pack cover is under 2 days due to sudden demand spike in North India. Alternate supplier Deccan Manufacturing (Pune) has capacity.', severity: 'critical', category: 'inventory', recommendation: 'Initiate expedited road shipment from Pune to Manesar.' },
+  { id: 'INS-002', title: 'Carrier Bid Under Tender Review', description: 'Delhivery bid for Chennai to NCR route is 12% lower than historical average, but transit time is 1 day longer.', severity: 'warning', category: 'performance', recommendation: 'Negotiate SLA penalty clause before accepting Delhivery bid.' }
+]
+

@@ -481,6 +481,196 @@ async def alternate_suppliers_get(item_id: str, quantity: int = 100):
 
 
 # ---------------------------------------------------------------------------
+# NEW Retail & Supply Chain Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/store-sales")
+async def store_sales():
+    return execute_query("SELECT * FROM store_sales ORDER BY date DESC LIMIT 100")
+
+
+@app.get("/api/ecomm-sales")
+async def ecomm_sales():
+    return execute_query("SELECT * FROM ecomm_sales ORDER BY date DESC LIMIT 100")
+
+
+@app.get("/api/ecomm-inventory")
+async def ecomm_inventory():
+    return execute_query("SELECT * FROM ecomm_inventory LIMIT 100")
+
+
+@app.get("/api/ecomm-instock")
+async def ecomm_instock():
+    return execute_query("SELECT * FROM ecomm_instock ORDER BY date DESC LIMIT 100")
+
+
+@app.get("/api/ecomm-returns")
+async def ecomm_returns():
+    return execute_query("SELECT * FROM ecomm_returns LIMIT 100")
+
+
+@app.get("/api/dc-metrics")
+async def dc_metrics():
+    return execute_query("SELECT * FROM dc_metrics ORDER BY date DESC LIMIT 100")
+
+
+@app.get("/api/order-forecast")
+async def order_forecast():
+    return execute_query("SELECT * FROM order_forecast ORDER BY date ASC LIMIT 100")
+
+
+@app.get("/api/demand-forecast")
+async def demand_forecast():
+    return execute_query("SELECT * FROM demand_forecast ORDER BY date ASC LIMIT 100")
+
+
+@app.get("/api/vendor-scorecard")
+async def vendor_scorecard():
+    return execute_query("SELECT * FROM vendor_scorecard")
+
+
+@app.get("/api/tender-analysis")
+async def tender_analysis():
+    return execute_query("SELECT * FROM tender_analysis")
+
+
+@app.get("/api/store-mumd")
+async def store_mumd():
+    return execute_query("SELECT * FROM store_mumd")
+
+
+@app.get("/api/modular-plan")
+async def modular_plan():
+    return execute_query("SELECT * FROM modular_plan")
+
+
+@app.get("/api/future-valid-stores")
+async def future_valid_stores():
+    return execute_query("SELECT * FROM future_valid_stores ORDER BY projected_opening_date ASC")
+
+
+@app.get("/api/item-master")
+async def item_master():
+    return execute_query("SELECT * FROM item_master")
+
+
+@app.get("/api/exceptions")
+async def exceptions():
+    instock = execute_query("SELECT item_name, date, instock_rate_pct, out_of_stock_minutes FROM ecomm_instock WHERE instock_rate_pct < 95.0 ORDER BY instock_rate_pct ASC LIMIT 10")
+    inv_alerts = execute_query("SELECT c.name AS item_name, w.name AS warehouse_name, il.current_stock, il.reorder_point FROM inventory_levels il JOIN components c ON il.item_id = c.item_id JOIN warehouses w ON il.warehouse_id = w.warehouse_id WHERE il.current_stock <= il.reorder_point LIMIT 10")
+    ordering_gaps = execute_query("""
+        SELECT c.name AS item_name, w.name AS warehouse_name, il.current_stock, il.reorder_point
+        FROM inventory_levels il
+        JOIN components c ON il.item_id = c.item_id
+        JOIN warehouses w ON il.warehouse_id = w.warehouse_id
+        WHERE il.current_stock < il.reorder_point
+          AND c.item_id NOT IN (SELECT item_id FROM purchase_orders WHERE status IN ('In Transit', 'Pending'))
+        LIMIT 10
+    """)
+    return {
+        "instock_exceptions": instock,
+        "inventory_exceptions": inv_alerts,
+        "ordering_gap_exceptions": ordering_gaps
+    }
+
+
+@app.get("/api/demand-intelligence")
+async def demand_intelligence():
+    alignment = execute_query("""
+        SELECT df.item_name, SUM(df.forecasted_demand_qty) as total_demand, SUM(of.forecasted_orders) as total_orders
+        FROM demand_forecast df
+        JOIN order_forecast of ON df.item_name = of.item_name AND df.date = of.date
+        GROUP BY df.item_name
+        LIMIT 10
+    """)
+    sell_through = execute_query("""
+        SELECT s.item_name, SUM(s.quantity_sold) as total_sold, SUM(i.stock_on_hand) as stock_on_hand,
+               ROUND(SUM(s.quantity_sold) * 100.0 / (SUM(s.quantity_sold) + SUM(i.stock_on_hand)), 2) as sell_through_pct
+        FROM store_sales s
+        JOIN ecomm_inventory i ON s.item_name = i.item_name
+        GROUP BY s.item_name
+        LIMIT 10
+    """)
+    return {
+        "demand_order_alignment": alignment,
+        "sell_through_analysis": sell_through
+    }
+
+
+@app.get("/api/automated-insights")
+async def automated_insights():
+    return [
+        {
+            "id": "INS-001",
+            "title": "Severe Stockout Risk in Manesar Hub",
+            "description": "Lithium-Ion Battery Pack cover is under 2 days due to sudden demand spike in North India. Alternate supplier Deccan Manufacturing (Pune) has capacity.",
+            "severity": "critical",
+            "category": "inventory",
+            "recommendation": "Initiate expedited road shipment from Pune to Manesar."
+        },
+        {
+            "id": "INS-002",
+            "title": "Carrier Bid Under Tender Review",
+            "description": "Delhivery bid for Chennai to NCR route is 12% lower than historical average, but transit time is 1 day longer.",
+            "severity": "warning",
+            "category": "performance",
+            "recommendation": "Negotiate SLA penalty clause before accepting Delhivery bid."
+        },
+        {
+            "id": "INS-003",
+            "title": "Planogram Alignment Complete",
+            "description": "Q3 modular plans for structural assemblies successfully approved and synchronized with 8 major stores.",
+            "severity": "healthy",
+            "category": "planning",
+            "recommendation": "Monitor category shelf share growth over the next 4 weeks."
+        }
+    ]
+
+
+class SsoCalculateRequest(BaseModel):
+    store_name: str
+    item_name: str
+    target_cover_days: int = 15
+    min_order_qty: int = 50
+
+
+@app.post("/api/sso-builder/calculate")
+async def sso_builder_calculate(req: SsoCalculateRequest):
+    item_details = execute_query("SELECT * FROM item_master WHERE name = ?", (req.item_name,))
+    item = item_details[0] if item_details else {"unit_cost_inr": 5000.0, "pack_size": 12, "weight_kg": 2.5, "item_id": "ITEM-001"}
+    
+    sales_details = execute_query(
+        "SELECT AVG(quantity_sold) as avg_daily_sales FROM store_sales WHERE store_name = ? AND item_name = ?",
+        (req.store_name, req.item_name)
+    )
+    avg_sales = sales_details[0]["avg_daily_sales"] if sales_details and sales_details[0]["avg_daily_sales"] else 5.2
+    
+    pack_size = item["pack_size"]
+    target_stock = avg_sales * req.target_cover_days
+    raw_qty = max(req.min_order_qty, round(target_stock))
+    
+    packs = (raw_qty + pack_size - 1) // pack_size
+    final_qty = packs * pack_size
+    
+    total_cost = round(final_qty * item["unit_cost_inr"], 2)
+    total_weight = round(final_qty * item["weight_kg"], 1)
+    
+    return {
+        "store_name": req.store_name,
+        "item_name": req.item_name,
+        "avg_daily_sales": round(avg_sales, 2),
+        "target_cover_days": req.target_cover_days,
+        "raw_quantity_needed": raw_qty,
+        "pack_size": pack_size,
+        "cases_to_order": packs,
+        "recommended_order_qty": final_qty,
+        "estimated_cost_inr": total_cost,
+        "total_weight_kg": total_weight,
+        "msg": f"Optimal order recommended: {packs} cases ({final_qty} units) of {req.item_name} for {req.store_name}."
+    }
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":

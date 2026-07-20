@@ -11,6 +11,17 @@ from contextlib import contextmanager
 _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATABASE_PATH = os.getenv('DATABASE_PATH', os.path.join(_project_root, 'supplysense.db'))
 
+# Copy seeded database to persistent volume if missing
+default_db_path = os.path.join(_project_root, 'supplysense.db')
+if DATABASE_PATH != default_db_path and not os.path.exists(DATABASE_PATH):
+    try:
+        import shutil
+        os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
+        if os.path.exists(default_db_path):
+            shutil.copy2(default_db_path, DATABASE_PATH)
+    except Exception:
+        pass
+
 
 @contextmanager
 def get_connection():

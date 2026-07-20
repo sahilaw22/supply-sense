@@ -1,114 +1,171 @@
 # SupplySense — AI Supply Chain Risk & Inventory Intelligence
 
-Real-time supply chain intelligence platform that detects disruptions, predicts shortages, and recommends procurement actions using AI — purpose-built for Indian logistics.
+Real-time supply chain intelligence platform detecting disruptions, predicting shortages, and recommending procurement actions using AI — built for Indian logistics.
 
-## Problem & Solution
+## Demo Credentials
 
-| Problem | Solution |
-|---------|----------|
-| Manual supply chain monitoring across 10+ suppliers, 5 warehouses, 15+ POs | AI copilot answers questions in natural language — stockout risk, supplier scores, allocation |
-| Disruption response takes hours (emails, spreadsheets) | One-click JNPT port strike simulation shows ₹1.2 Cr impact in seconds |
-| Inventory data scattered across disconnected tools | Unified dashboard: risk-ranked inventory, warehouse utilization, supplier scorecards |
-| No visibility into alternate sourcing during crises | AI recommends qualified alternate suppliers with lead time & fulfillment data |
-| Complex supply chain data hard to digest | Leaflet flow map with live node health, interactive hover panels, animated routes |
+`demo@supplysense.ai` / `Hackathon2026!`
+
+---
 
 ## Features
 
-| Feature | Details |
-|---------|---------|
-| **AI Copilot** | Natural-language queries: stockout risk, supplier delays, warehouse allocation, disruption analysis |
-| **Disruption Simulation** | One-click JNPT port strike — impact on PO-889, projected ₹1.2 Cr exposure, reroute recommendations |
-| **Interactive Flow Map** | Leaflet + CartoDB dark tiles, 18 Indian nodes, animated directional lines, node health dots, hover panels |
-| **Supplier Scorecards** | Fulfillment %, delivery performance, lead-time variance — SVG circular progress rings |
-| **Inventory Risk Table** | Cover days, demand, stock levels — color-coded critical/warning/healthy status pills |
-| **Warehouse Utilization** | Capacity bars per location with critical/warning/healthy thresholds |
-| **Demand Forecast** | 12-week Lithium-Ion Battery demand trend with +46% projected growth |
-| **Guided Demo** | 3-button onboarding: Simulate Demand Spike, Check Supplier Risk, Generate Executive Summary |
-| **Responsive + Dark Theme** | Mobile-friendly sidebar nav, `#0A0A0B` dark surface, red accent `#FF3B30` |
+### AI Copilot
+Natural-language queries via a slide-out drawer: ask about stockout risk, supplier delays, warehouse allocation, disruption root cause, and alternate sourcing. Powered by Google Gemini with tool-calling (SQL queries, supplier ranking, reroute simulation). Returns structured responses with summaries, data tables, and one-click action buttons.
+
+### Interactive Flow Map
+Leaflet + CartoDB dark tiles showing 18 Indian supply chain nodes (ports, warehouses, suppliers). Animated directional routes, color-coded node health (healthy/warning/critical), hover tooltips, and click-to-inspect popups.
+
+### Disruption Simulation
+One-click JNPT port strike simulation — shows impact on active POs, projected ₹1.2 Cr exposure, reroute recommendations via Pune-Mumbai highway corridor.
+
+### 29 Data Pages
+| Category | Pages |
+|----------|-------|
+| **Sales & Inventory** | Store Sales, eComm Sales, eComm Inventory, eComm In-stock Rate, eComm Returns |
+| **Supply Chain** | DC Logistics Metrics, Order Forecast, Demand Forecast |
+| **Performance** | Vendor Scorecard, Tender Analysis, Store Markdowns |
+| **Planning** | Modular Shelf Plan, Future Store Pipeline, Item Master |
+| **Operations** | Store Order Calculator (SSO Builder), Alert Exceptions, Demand-Order Alignment, Automated Insights Feed |
+
+### Supplier Scorecards
+SVG circular progress rings for fulfillment %, delivery performance, lead-time variance. Color-coded thresholds (green ≥85, amber ≥70, red <70).
+
+### Demand Forecasting
+12-week Recharts area chart with Lithium-Ion Battery demand trend, +46% projected growth, gradient fills, forecast vs actual overlay.
+
+### Inventory Risk Table
+Cover days, reorder points, current stock levels with color-coded status pills (critical/warning/healthy).
+
+### KPI Strip
+4 live metrics: Active Shipments, Inventory at Risk, Supplier Reliability, Avg Lead Time.
+
+### Warehouse Utilization
+Capacity bars per location with critical/warning/healthy thresholds.
+
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Frontend | **Next.js 16** (Turbopack), **React 19**, TypeScript |
-| Mapping | **Leaflet** + react-leaflet + CartoDB dark tiles (free, no API key) |
+| Styling | Tailwind CSS v4 + custom design tokens |
 | Icons | **Lucide React** |
+| Charts | **Recharts** |
+| Maps | **Leaflet** + react-leaflet + CartoDB dark tiles |
 | Backend | **FastAPI** (Python), SQLite with parameterized queries |
-| AI / LLM | **Gemini 3.5 Flash** / Claude — risk scoring, intent classification, response generation |
-| Auth | localStorage + React Context (demo credentials pre-filled) |
-| CSS | Single `globals.css` — no CSS modules, no Tailwind |
+| AI / LLM | **Google Gemini** — risk scoring, intent classification, tool calling |
+| Auth | React Context + localStorage |
+
+---
+
+## Project Structure
+
+```
+codebenders/
+├── app/                          # Next.js App Router
+│   ├── page.tsx                 # Landing (Dashboard overview)
+│   ├── [section]/page.tsx       # 29 dynamic section routes
+│   ├── login/page.tsx           # Auth login
+│   ├── layout.tsx               # Root layout + fonts
+│   └── globals.css              # Global styles
+├── backend/                      # FastAPI backend
+│   ├── main.py                  # API endpoints (20+ routes)
+│   ├── db.py                    # SQLite connection helpers
+│   ├── data.py                  # Seed data + query functions
+│   ├── orchestrator.py          # Gemini AI orchestrator
+│   ├── tools.py                 # Agent tool functions
+│   ├── risk.py                  # Stockout risk formula
+│   ├── disruptions.py           # JNPT disruption engine
+│   └── supplysense.db           # Seeded SQLite database
+├── api/index.py                  # Vercel Python serverless entry
+├── components/supplysense/
+│   ├── dashboard.tsx            # Main dashboard + copilot drawer (~950 lines)
+│   ├── flow-map.tsx             # Leaflet interactive map
+│   ├── score-progress.tsx       # SVG circular progress rings
+│   └── auth-guard.tsx           # Route protection wrapper
+├── lib/
+│   ├── supplysense-api.ts       # API client (fetch wrappers)
+│   ├── supplysense-data.ts      # Static fallback data + prompt options
+│   ├── auth-context.tsx          # Auth provider
+│   └── types.ts                 # TypeScript type definitions
+├── public/                       # Static assets (bot-icon, logo)
+├── Dockerfile.backend            # Fly.io container image
+├── fly.toml                      # Fly.io deployment config
+├── vercel.json                   # Vercel deployment config
+├── next.config.mjs               # Next.js configuration
+├── tsconfig.json                 # TypeScript strict config
+└── package.json                  # Dependencies
+```
+
+---
 
 ## Quick Start
-
-### Prerequisites
-- Python 3.8+, Node.js 18+, pnpm
 
 ### Backend
 ```bash
 python -m venv venv
-# Windows: venv\Scripts\activate
-cd backend
-pip install -r requirements.txt
-cp .env.example .env   # add GEMINI_API_KEY
-cd ..
+# Windows: venv\Scriptives\activate
+pip install -r backend/requirements.txt
+cp backend/.env.example backend/.env
+# Add GEMINI_API_KEY to backend/.env
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### Frontend
 ```bash
-cd frontend
 pnpm install
 pnpm run dev
 ```
 
 Open `http://localhost:3000` — login with `demo@supplysense.ai` / `Hackathon2026!`
 
-## Project Structure
-
-```
-.
-├── backend/
-│   ├── main.py           # FastAPI entry — endpoints: /api/ask, /api/simulate, /api/snapshot
-│   ├── db.py             # SQLite helpers (parameterized queries)
-│   ├── risk.py           # Risk scoring engine (0.0–3.0)
-│   ├── requirements.txt
-│   └── .env.example
-├── frontend/
-│   ├── app/              # Next.js App Router pages (/login, /[section])
-│   ├── components/       # React components (dashboard, flow-map, score-progress, etc.)
-│   ├── lib/              # Data, types, auth context, API client
-│   └── public/           # Static assets (logo, bot-icon)
-├── tests/                # pytest unit tests (db, risk modules)
-├── supplysense.db        # SQLite seed database
-└── data.py               # Seed data generator
-```
-
-## Design Tokens
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| Surface (bg) | `#0A0A0B` | Main background |
-| Surface (card) | `#131316` | Card backgrounds |
-| Surface (raised) | `#1C1C21` | Hover/active states |
-| Border | `#26262C` | Dividers and borders |
-| Text primary | `#F5F5F7` | Main text |
-| Text secondary | `#9A9AA5` | Secondary text |
-| Accent | `#FF3B30` | Brand red — interactive elements, auth button |
-| Risk Critical | `#EF4444` | High-risk indicators |
-| Risk Warning | `#F59E0B` | Medium-risk indicators |
-| Risk Safe | `#22C55E` | Low-risk indicators |
-
-Font: **Inter** — Display 32/40 semibold, H1 24/32 semibold, Body 14/20 regular
+---
 
 ## API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/ask` | Natural-language query → intent classification + DB response |
-| POST | `/api/simulate` | Run disruption simulation (JNPT strike) |
-| GET | `/api/snapshot` | Dashboard summary snapshot |
-| GET | `/api/health` | Backend health + LLM status |
+| GET | `/health` | Backend health + LLM status |
+| POST | `/api/query` | Natural-language query → AI → structured response |
+| GET | `/api/snapshot` | Dashboard KPI, inventory, suppliers, warehouses, shipments |
+| POST | `/api/simulate` | Run JNPT disruption simulation |
+| POST | `/api/calculate-sso` | Store order optimization calculator |
+| GET | `/api/*` | 15 data endpoints (store-sales, ecomm-sales, dc-metrics, vendor-scorecard, etc.) |
+
+---
+
+## Code Quality
+
+| Metric | Status |
+|--------|--------|
+| TypeScript strict mode | ✅ `"strict": true` in tsconfig |
+| Build passes | ✅ `pnpm run build` clean |
+| Zero unused dependencies | ✅ 8 packages removed: `shadcn`, `tw-animate-css`, `@vercel/analytics`, `@base-ui/react`, `class-variance-authority`, `clsx`, `tailwind-merge`, `chromadb` |
+| Dead code removed | ✅ guided-demo.tsx, button.tsx, utils.ts, empty divs, dead handlers |
+| CSS deduplicated | ✅ Merged duplicate media queries, removed duplicate selectors |
+| Backend | ✅ Parameterized SQL queries, async endpoints, FastAPI |
+
+---
+
+## Deployment
+
+| Platform | Config | Guide |
+|----------|--------|-------|
+| **Vercel** (Frontend) | `vercel.json` + `next.config.mjs` | Set `NEXT_PUBLIC_API_BASE_URL` env var |
+| **Fly.io** (Backend) | `Dockerfile.backend` + `fly.toml` | Set `GEMINI_API_KEY` secret |
+
+See `guide.md` for step-by-step deployment instructions.
+
+---
+
+## Database Schema
+
+10 tables: `suppliers`, `warehouses`, `components`, `inventory_levels`, `purchase_orders`, `store_sales`, `ecomm_sales`, `vendor_scorecard`, `tender_analysis`, `item_master`. All with realistic India-specific seed data (Mumbai, Chennai, Delhi NCR, Pune, Kolkata, Hyderabad, Ahmedabad, Bengaluru).
+
+---
 
 ## License
 
-© 2025 SupplySense. All rights reserved.
+© 2026 SupplySense. All rights reserved.

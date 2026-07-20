@@ -106,3 +106,91 @@ export function getAlternateSuppliers(itemId: string, quantity: number = 100) {
   })
 }
 
+export function getStoreSales() {
+  return requestJson<any[]>('/api/store-sales')
+}
+
+export function getEcommSales() {
+  return requestJson<any[]>('/api/ecomm-sales')
+}
+
+export function getEcommInventory() {
+  return requestJson<any[]>('/api/ecomm-inventory')
+}
+
+export function getEcommInstock() {
+  return requestJson<any[]>('/api/ecomm-instock')
+}
+
+export function getEcommReturns() {
+  return requestJson<any[]>('/api/ecomm-returns')
+}
+
+export function getDcMetrics() {
+  return requestJson<any[]>('/api/dc-metrics')
+}
+
+export function getOrderForecast() {
+  return requestJson<any[]>('/api/order-forecast')
+}
+
+export function getDemandForecast() {
+  return requestJson<any[]>('/api/demand-forecast')
+}
+
+export function getVendorScorecard() {
+  return requestJson<any[]>('/api/vendor-scorecard')
+}
+
+export function getTenderAnalysis() {
+  return requestJson<any[]>('/api/tender-analysis')
+}
+
+export function getStoreMumd() {
+  return requestJson<any[]>('/api/store-mumd')
+}
+
+export function getModularPlan() {
+  return requestJson<any[]>('/api/modular-plan')
+}
+
+export function getFutureValidStores() {
+  return requestJson<any[]>('/api/future-valid-stores')
+}
+
+export function getItemMaster() {
+  return requestJson<any[]>('/api/item-master')
+}
+
+export function getExceptions() {
+  return requestJson<{ instock_exceptions: any[]; inventory_exceptions: any[]; ordering_gap_exceptions: any[] }>('/api/exceptions')
+}
+
+export function getDemandIntelligence() {
+  return requestJson<{ demand_order_alignment: any[]; sell_through_analysis: any[] }>('/api/demand-intelligence')
+}
+
+export function getAutomatedInsights() {
+  return requestJson<any[]>('/api/automated-insights')
+}
+
+export function calculateSso(storeName: string, itemName: string, targetCoverDays: number = 15, minOrderQty: number = 50) {
+  return requestJson<{
+    store_name: string
+    item_name: string
+    avg_daily_sales: number
+    target_cover_days: number
+    raw_quantity_needed: number
+    pack_size: number
+    cases_to_order: number
+    recommended_order_qty: number
+    estimated_cost_inr: number
+    total_weight_kg: number
+    msg: string
+  }>('/api/sso-builder/calculate', {
+    method: 'POST',
+    body: JSON.stringify({ store_name: storeName, item_name: itemName, target_cover_days: targetCoverDays, min_order_qty: minOrderQty }),
+  })
+}
+
+

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { nodes, routes, nodeMap, type GeoNode, type GeoRoute } from '@/lib/supply-chain-geo'
-import { ArrowRight, Eye, EyeOff, Plus, Minus } from 'lucide-react'
+import { Eye, EyeOff, Plus, Minus } from 'lucide-react'
 
 const CRITICAL = '#FF3B30'
 const WARNING = '#F59E0B'
@@ -24,16 +24,6 @@ function createMarkerIcon(node: GeoNode) {
   })
 }
 
-function animateDash(polyline: L.Polyline, duration = 800) {
-  let offset = 0
-  const step = () => {
-    offset = (offset + 1) % 16
-    polyline.setStyle({ dashOffset: String(-offset) })
-  }
-  const id = setInterval(step, duration / 16)
-  return () => clearInterval(id)
-}
-
 interface FlowMapProps {
   disrupted: boolean
   onReroute?: () => void
@@ -43,7 +33,6 @@ export function FlowMap({ disrupted, onReroute }: FlowMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const layersRef = useRef<L.LayerGroup | null>(null)
-  const animCleanupsRef = useRef<Array<() => void>>([])
   const [showAll, setShowAll] = useState(false)
   const [hoverNode, setHoverNode] = useState<GeoNode | null>(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
@@ -55,7 +44,10 @@ export function FlowMap({ disrupted, onReroute }: FlowMapProps) {
       zoom: 5,
       zoomControl: false,
       attributionControl: false,
-      scrollWheelZoom: false,
+      scrollWheelZoom: true,
+      zoomDelta: 0.5,
+      zoomSnap: 0.5,
+      wheelPxPerZoomLevel: 120,
     })
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
@@ -68,8 +60,6 @@ export function FlowMap({ disrupted, onReroute }: FlowMapProps) {
     if (!map) return
 
     if (layersRef.current) map.removeLayer(layersRef.current)
-    animCleanupsRef.current.forEach(fn => fn())
-    animCleanupsRef.current = []
 
     const layerGroup = L.layerGroup()
 
@@ -93,24 +83,9 @@ export function FlowMap({ disrupted, onReroute }: FlowMapProps) {
           opacity,
           dashArray: route.status === 'healthy' ? '6 6' : '8 6',
           lineCap: 'round',
+          className: route.status === 'critical' ? 'flow-route-critical' : route.status === 'warning' ? 'flow-route-warning' : 'flow-route-healthy',
         }
       )
-
-      const cleanup = animateDash(polyline, route.status === 'critical' ? 600 : 1000)
-      animCleanupsRef.current.push(cleanup)
-
-      const midLat = (fromNode.lat + toNode.lat) / 2
-      const midLng = (fromNode.lng + toNode.lng) / 2
-      const angle = Math.atan2(toNode.lat - fromNode.lat, toNode.lng - fromNode.lng) * (180 / Math.PI)
-
-      L.marker([midLat, midLng], {
-        icon: L.divIcon({
-          className: 'flow-arrow',
-          html: `<div style="transform:rotate(${angle}deg);color:${color};font-size:${route.status === 'critical' ? '14px' : '10px'};opacity:${opacity}">▶</div>`,
-          iconSize: [0, 0],
-          iconAnchor: [0, 0],
-        }),
-      }).addTo(layerGroup)
 
       const popupContent = document.createElement('div')
       popupContent.className = 'flow-popup'
@@ -164,7 +139,6 @@ export function FlowMap({ disrupted, onReroute }: FlowMapProps) {
   useEffect(() => {
     initMap()
     return () => {
-      animCleanupsRef.current.forEach(fn => fn())
       mapRef.current?.remove()
       mapRef.current = null
     }

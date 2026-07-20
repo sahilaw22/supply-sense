@@ -24,6 +24,20 @@ ALLOWED_TABLES = {
     "components",
     "inventory_levels",
     "purchase_orders",
+    "store_sales",
+    "ecomm_sales",
+    "ecomm_inventory",
+    "ecomm_instock",
+    "ecomm_returns",
+    "dc_metrics",
+    "order_forecast",
+    "demand_forecast",
+    "vendor_scorecard",
+    "tender_analysis",
+    "store_mumd",
+    "modular_plan",
+    "future_valid_stores",
+    "item_master",
 }
 
 # Reject any DML or DDL keyword (belt-and-suspenders on top of the whitelist)
