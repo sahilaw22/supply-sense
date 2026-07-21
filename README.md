@@ -1,25 +1,37 @@
-# SupplySense — AI Supply Chain Risk & Inventory Intelligence
+<div align="center">
+<h1 align="center">
+  <img src="https://github.com/user-attachments/assets/45873da0-3a53-45c2-8f05-e6fd5f23336e" width="38" height="38" alt="logo" style="vertical-align: middle; margin-right: 8px;" />
+  <span style="vertical-align: middle;"><b>SupplySense</b></span>
+</h1>
+  <h3>AI-Powered Supply Chain Risk & Inventory Intelligence</h3>
+</div>
 
-Real-time supply chain intelligence platform detecting disruptions, predicting shortages, and recommending procurement actions using AI — built for Indian logistics.
+> Real-time supply chain intelligence platform detecting disruptions, predicting shortages, and recommending procurement actions.
 
-## Demo Credentials
+<br>
+  <!-- Shields / Badges -->
+ <p align="center">
+  <img src="https://img.shields.io/badge/Next.js_16-black?style=flat&logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React_19-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/FastAPI-005587?style=flat&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Google_Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white" alt="Gemini AI" />
+   <br>
+  <img src="https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=flat&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat&logo=railway&logoColor=white" alt="Railway" />
+</p>
+</div>
 
-`demo@supplysense.ai` / `Hackathon2026!`
+<br>
 
----
-
-## Features
+<div align="center">  <h2>Features</h2>
+</div>
 
 ### AI Copilot
-Natural-language queries via a slide-out drawer: ask about stockout risk, supplier delays, warehouse allocation, disruption root cause, and alternate sourcing. Powered by Google Gemini with tool-calling (SQL queries, supplier ranking, reroute simulation). Returns structured responses with summaries, data tables, and one-click action buttons.
+<p>Natural-language queries via a slide-out drawer: ask about stockout risk, supplier delays, warehouse allocation, disruption root cause, and alternate sourcing. Powered by Google Gemini with tool-calling (SQL queries, supplier ranking, reroute simulation). Returns structured responses with summaries, data tables, and one-click action buttons.</p>
 
 ### Interactive Flow Map
-Leaflet + CartoDB dark tiles showing 18 Indian supply chain nodes (ports, warehouses, suppliers). Animated directional routes, color-coded node health (healthy/warning/critical), hover tooltips, and click-to-inspect popups.
+<p>Leaflet + CartoDB dark tiles showing 18 Indian supply chain nodes (ports, warehouses, suppliers). Animated directional routes, color-coded node health (healthy/warning/critical), hover tooltips, and click-to-inspect popups.</p>
 
-### Disruption Simulation
-One-click JNPT port strike simulation — shows impact on active POs, projected ₹1.2 Cr exposure, reroute recommendations via Pune-Mumbai highway corridor.
-
-### 29 Data Pages
 | Category | Pages |
 |----------|-------|
 | **Sales & Inventory** | Store Sales, eComm Sales, eComm Inventory, eComm In-stock Rate, eComm Returns |
@@ -29,21 +41,32 @@ One-click JNPT port strike simulation — shows impact on active POs, projected 
 | **Operations** | Store Order Calculator (SSO Builder), Alert Exceptions, Demand-Order Alignment, Automated Insights Feed |
 
 ### Supplier Scorecards
-SVG circular progress rings for fulfillment %, delivery performance, lead-time variance. Color-coded thresholds (green ≥85, amber ≥70, red <70).
+<p>SVG circular progress rings for fulfillment %, delivery performance, lead-time variance. Color-coded thresholds (green ≥85, amber ≥70, red <70).
+</p>
 
 ### Demand Forecasting
-12-week Recharts area chart with Lithium-Ion Battery demand trend, +46% projected growth, gradient fills, forecast vs actual overlay.
+<p>12-week Recharts area chart with Lithium-Ion Battery demand trend, +46% projected growth, gradient fills, forecast vs actual overlay.</p>
 
 ### Inventory Risk Table
-Cover days, reorder points, current stock levels with color-coded status pills (critical/warning/healthy).
+<p>Cover days, reorder points, current stock levels with color-coded status pills (critical/warning/healthy).</p>
 
 ### KPI Strip
-4 live metrics: Active Shipments, Inventory at Risk, Supplier Reliability, Avg Lead Time.
+<p>4 live metrics: Active Shipments, Inventory at Risk, Supplier Reliability, Avg Lead Time.</p>
 
 ### Warehouse Utilization
-Capacity bars per location with critical/warning/healthy thresholds.
+<p>Capacity bars per location with critical/warning/healthy thresholds.</p>
 
 ---
+
+<div align="center">  <h2>Application Preview</h2> </div>
+
+| Main Dashboard | Supply Chain Map Network |
+| :---: | :---: |
+| <img width="450" height="1100" alt="dash" src="https://github.com/user-attachments/assets/3262ad45-06f7-49ab-8d6c-7afd640492b1" /> | <img width="471" height="1100" alt="map" src="https://github.com/user-attachments/assets/d80ba7ff-a8c4-41bb-88d5-176f653757b4" /> |
+
+| AI Copilot | SSO Order Builder |
+| :---: | :---: |
+|<img width="450" height="1200" alt="ai" src="https://github.com/user-attachments/assets/d9efb59c-c97b-4527-a55c-2f98f5fc06fb" /> | <img width="471" height="1200" alt="cal" src="https://github.com/user-attachments/assets/e929b6dd-0f0c-4eba-afd3-286815e9f31d" /> |
 
 ## Tech Stack
 
@@ -136,25 +159,12 @@ Open `http://localhost:3000` — login with `demo@supplysense.ai` / `Hackathon20
 
 ---
 
-## Code Quality
-
-| Metric | Status |
-|--------|--------|
-| TypeScript strict mode | ✅ `"strict": true` in tsconfig |
-| Build passes | ✅ `pnpm run build` clean |
-| Zero unused dependencies | ✅ 8 packages removed: `shadcn`, `tw-animate-css`, `@vercel/analytics`, `@base-ui/react`, `class-variance-authority`, `clsx`, `tailwind-merge`, `chromadb` |
-| Dead code removed | ✅ guided-demo.tsx, button.tsx, utils.ts, empty divs, dead handlers |
-| CSS deduplicated | ✅ Merged duplicate media queries, removed duplicate selectors |
-| Backend | ✅ Parameterized SQL queries, async endpoints, FastAPI |
-
----
-
 ## Deployment
 
 | Platform | Config | Guide |
 |----------|--------|-------|
-| **Vercel** (Frontend) | `vercel.json` + `next.config.mjs` | Set `NEXT_PUBLIC_API_BASE_URL` env var |
-| **Fly.io** (Backend) | `Dockerfile.backend` + `fly.toml` | Set `GEMINI_API_KEY` secret |
+| **Vercel** (Frontend) | `vercel.json` | Set `NEXT_PUBLIC_API_BASE_URL` env var |
+| **Railway** (Backend) | `Dockerfile.backend` | Set `GEMINI_API_KEY` secret |
 
 See `guide.md` for step-by-step deployment instructions.
 
